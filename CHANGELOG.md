@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-24
+
+### Added
+- `py.typed` marker file (PEP 561). Consumer mypy with `strict = true` + `warn_return_any = true` can now fully introspect the public-API annotations without `[[tool.mypy.overrides]] ignore_missing_imports = true` blocks or `cast()` workarounds at every return site.
+- Motivation: discovered post-v0.1.0 release when 7 consumer blade-mcps (gmail, home-assistant, mastodon, tailscale, syncthing, caldav, fastmail) all independently needed mypy workarounds in their DD-338 Phase E.python flip PRs. v0.1.1 closes the gap so the follow-up cleanup sweep can remove those workarounds.
+
+### Notes
+- Pure metadata addition. No public API changes. No behavioural changes. Safe to upgrade without consumer changes; consumers benefit by removing workarounds at their own cadence.
+
 ## [0.1.0] - 2026-05-24
 
 Initial release.
