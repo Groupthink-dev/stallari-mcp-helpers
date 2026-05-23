@@ -10,6 +10,7 @@ jobs:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
     permissions:
+      contents: read   # actions/checkout — explicit because `permissions:` is a complete override
       id-token: write  # Trusted publishing
     steps:
       - uses: actions/checkout@v4
