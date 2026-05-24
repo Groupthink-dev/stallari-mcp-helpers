@@ -1,6 +1,6 @@
 [project]
 name = "stallari-mcp-helpers"
-version = "0.1.1"
+version = "0.2.0"
 description = "Canonical helpers for Stallari-conformant MCP servers — `_meta` audit envelope builder and per-record domain-hint pattern engine. Drop-in primitives for Python MCP authors targeting Stallari's contract surface (DD-333/DD-338)."
 readme = "README.md"
 license = "MIT"
@@ -33,6 +33,9 @@ dev = [
     "mypy>=1.14.0",
     "types-PyYAML>=6.0",
 ]
+
+[project.scripts]
+stallari-mcp-lint = "stallari_mcp_helpers.lint:_cli"
 
 [build-system]
 requires = ["hatchling"]
