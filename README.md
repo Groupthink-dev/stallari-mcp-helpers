@@ -4,6 +4,20 @@ Canonical helpers for Python MCP servers targeting **Stallari**'s contract surfa
 
 If you're porting a Python MCP server to Stallari and want first-party-tier conformance, this is the on-ramp.
 
+## About Stallari
+
+Stallari is an agentic personal-knowledge-management platform. It runs [MCP servers](https://modelcontextprotocol.io) as its tool surface — the way it talks to email providers, calendars, smart-home hubs, source control, cloud infra, etc. Your MCP server dispatches through Stallari's assembler, which audits each tool call against a wire-shape contract before lifting the result into the LLM's context. This package provides the canonical helpers that make a Python MCP server emit that contract cleanly.
+
+## Sister packages
+
+| Language | Package | Source |
+|---|---|---|
+| **Python** | [`stallari-mcp-helpers` on PyPI](https://pypi.org/project/stallari-mcp-helpers/) | this repo |
+| **TypeScript** | [`stallari-mcp-helpers` on npm](https://www.npmjs.com/package/stallari-mcp-helpers) | [`stallari-mcp-helpers-ts`](https://github.com/Groupthink-dev/stallari-mcp-helpers-ts) |
+| **Swift** | `MCPHelpers` via Swift Package Manager | [`stallari-mcp-helpers-swift`](https://github.com/Groupthink-dev/stallari-mcp-helpers-swift) |
+
+All three packages stay in lockstep on the wire shape — `meta_envelope(...)` in Python, `formatMetaLine(...)` in TypeScript, and `formatMetaLine(...)` in Swift all emit byte-equivalent `_meta` envelopes for the same input.
+
 ## What this is
 
 Two small modules:
