@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-24
+
+### Added
+- `stallari_mcp_helpers.lint` module — DD-338 Phase B Python implementation of the cross-language **S-AUD-001** audit-surface honesty lint rule.
+- `lint_blade(blade_source_root, catalog_entry) -> LintResult` — static AST-based check that every tool declaring `granularity.audit_surface == "structured"` in the catalog has its function body invoke `append_meta` (directly, via re-export, via alias import, or via a wrapper function up to 3 hops deep). Companion to the runtime `LiveMCPToolProbe` in `stallari_capability_conformance.probe`; cheap to run in CI without spawning subprocesses or supplying credentials.
+- `LintResult` dataclass with `to_dict()` rendering the per-tool verdict envelope that mirrors the live probe's sidecar JSON shape (same `audit_surface: { declared, actual, result, detail }` block, same summary counters), so a single rendering surface can consume both static and runtime verdicts uniformly.
+- `stallari-mcp-lint` console script (`stallari_mcp_helpers.lint:_cli`) — argparse-driven CLI: `stallari-mcp-lint <source-root> --catalog <catalog.json> [--output <sidecar.json>] [--strict]`. `--strict` exits non-zero on any over-declared / under-declared verdict (indeterminate verdicts do not trip strict mode).
+
+### Notes
+- FastMCP decorator coverage: `@<mcp|server|app>.tool`, `@<mcp|server|app>.tool()`, `@<mcp|server|app>.tool(name="...")`, and `@<x>.tool(name="...", annotations={...})` are all detected. Imperative `server.add_tool(fn, name="...")` is NOT statically resolved — those tools surface as `indeterminate` rather than guessed.
+- Smoke-verified clean against `syncthing-blade-mcp` (38 tools, 0 over-declared); reports 6 over-declared on `apple-messages-blade-mcp`, matching the Phase A static heuristic.
+
 ## [0.1.1] - 2026-05-24
 
 ### Added
