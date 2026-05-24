@@ -18,7 +18,7 @@ from .audit_envelope import append_meta, meta_envelope
 from .domain_hint import Pattern, compute_domain_hint, load_patterns_from_yaml
 from .lint import LintResult, lint_blade
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "LintResult",
