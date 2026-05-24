@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-24
+
+### Added — DD-338 Phase D.1 MetaEnvelope additive extension for write-tier fields
+- Four new optional **write-tier** fields on `meta_envelope(...)`, all omit-when-`None`:
+  - `rows_affected: int | None` — count of rows/records affected by a write operation.
+  - `target_id: str | None` — identifier of the write target (e.g. DNS record ID, R2 object key, KV key, vault note path).
+  - `write_durability: str | None` — durability tier of the write. Canonical values: `"edge" | "central" | "replicated"`. No enum enforcement at the helper layer — any string is accepted to keep callable from upstream APIs whose vocabulary may extend.
+  - `response_timestamp: str | None` — ISO8601 timestamp echoed from upstream API response (e.g. Cloudflare's `X-Response-Time`-style headers).
+- **Canonical key order** locked across languages (TS + Swift sibling helpers v0.3.0). When present, keys appear in this exact order in the rendered JSON: `matched_total, returned, filtered_by, latency_ms, redactions, next_cursor, rows_affected, target_id, write_durability, response_timestamp, error_notes, domain_hints`. JSON is now hand-assembled rather than passed through a single `json.dumps(dict, ...)` call to guarantee byte-parity across Python / TypeScript / Swift implementations; per-value serialization still uses `json.dumps` with the locked separators + `ensure_ascii=False`.
+
+### Changed
+- `matched_total` and `returned` relaxed from required to optional (omit-when-`None`). Write-tier callers (creating/updating/deleting a single record) can now omit the read-tier counts that don't apply. `latency_ms` remains the only always-present field beyond `filtered_by` / `redactions` / `next_cursor` (which keep their present-with-default discipline).
+- `meta_envelope(...)` signature: `latency_ms` is the first kwarg (still kwarg-only); `matched_total` and `returned` default to `None`; the four new write-tier kwargs default to `None`. The kwarg-only discipline from v0.1.0 is preserved so all existing call sites that pass `matched_total=…, returned=…, latency_ms=…` (with or without `filtered_by` / `redactions` / `next_cursor`) continue to work without modification.
+
+### Backwards compatibility
+- All 7 known Python consumer blade-mcps (gmail, home-assistant, mastodon, tailscale, syncthing, caldav, fastmail) continue to work without code changes. Existing v0.2.0 read-tier call shapes produce byte-identical output to v0.2.0 because the canonical key order matches the previous `dict` iteration order on CPython for the read-tier-only field set.
+- The S-AUD-001 lint rule (`stallari_mcp_helpers.lint`) is unchanged in this release.
+
+### Notes
+- The canonical key order is a wire-contract invariant — re-ordering it is a breaking change requiring a major bump. The new write-tier keys are appended after the read-tier block and before `error_notes` / `domain_hints` to keep the read-tier prefix byte-identical with v0.2.0 output.
+- `write_durability` is a string rather than an enum at the helper layer because individual blade-mcps may need to surface tier vocabulary specific to the upstream service (e.g. R2 has "eventually consistent" + "strongly consistent" reads but only one write tier; DNS has zone-level vs edge propagation distinctions). The catalog/conformance harness is the right place to enforce the canonical-three vocabulary; the helper layer stays permissive.
+
 ## [0.2.0] - 2026-05-24
 
 ### Added
