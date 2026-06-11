@@ -133,9 +133,7 @@ def meta_envelope(
         if key not in present:
             continue
         encoded_key = json.dumps(key, ensure_ascii=False)
-        encoded_value = json.dumps(
-            present[key], separators=(",", ":"), ensure_ascii=False
-        )
+        encoded_value = json.dumps(present[key], separators=(",", ":"), ensure_ascii=False)
         parts.append(f"{encoded_key}:{encoded_value}")
 
     return "_meta: {" + ",".join(parts) + "}"

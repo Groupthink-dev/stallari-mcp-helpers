@@ -81,7 +81,7 @@ def _catalog(
 
 def test_l1_direct_call_pass(tmp_path: Path) -> None:
     """Tool calls append_meta directly; catalog declares structured → match."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -95,7 +95,7 @@ mcp = _M()
 async def t_direct() -> str:
     body = "hi"
     return append_meta(body, meta_envelope(matched_total=1, returned=1, latency_ms=1))
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL1", server_body=server)
     result = lint_blade(root, _catalog("blade-l1", [("t_direct", "structured")]))
     verdict = result.tools["t_direct"]["audit_surface"]
@@ -110,7 +110,7 @@ async def t_direct() -> str:
 
 def test_l2_direct_call_gap(tmp_path: Path) -> None:
     """Tool returns text without append_meta; catalog declares structured → over-declared."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -121,7 +121,7 @@ mcp = _M()
 @mcp.tool()
 async def t_silent() -> str:
     return "no envelope here"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL2", server_body=server)
     result = lint_blade(root, _catalog("blade-l2", [("t_silent", "structured")]))
     verdict = result.tools["t_silent"]["audit_surface"]
@@ -136,7 +136,7 @@ async def t_silent() -> str:
 
 def test_l3_indirect_via_reexport(tmp_path: Path) -> None:
     """Tool imports append_meta from a sibling module that re-exports it."""
-    server = '''
+    server = """
 from .formatters import append_meta, meta_envelope
 
 class _M:
@@ -149,11 +149,11 @@ mcp = _M()
 @mcp.tool()
 async def t_reexport() -> str:
     return append_meta("body", meta_envelope(matched_total=1, returned=1, latency_ms=1))
-'''
-    formatters = '''
+"""
+    formatters = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 _ = (append_meta, meta_envelope)
-'''
+"""
     root = _write_blade(
         tmp_path,
         package="bladeL3",
@@ -172,7 +172,7 @@ _ = (append_meta, meta_envelope)
 
 def test_l4_indirect_via_alias(tmp_path: Path) -> None:
     """Tool imports append_meta as _emit; calls _emit(...) → match."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta as _emit, meta_envelope
 
 class _M:
@@ -185,7 +185,7 @@ mcp = _M()
 @mcp.tool()
 async def t_aliased() -> str:
     return _emit("body", meta_envelope(matched_total=0, returned=0, latency_ms=0))
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL4", server_body=server)
     result = lint_blade(root, _catalog("blade-l4", [("t_aliased", "structured")]))
     assert result.tools["t_aliased"]["audit_surface"]["result"] == "match"
@@ -198,7 +198,7 @@ async def t_aliased() -> str:
 
 def test_l5_indirect_via_wrapper(tmp_path: Path) -> None:
     """Tool calls _finalize() whose body calls append_meta → match."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -214,7 +214,7 @@ def _finalize(body, **meta_kwargs):
 @mcp.tool()
 async def t_wrapped() -> str:
     return _finalize("body", matched_total=1, returned=1, latency_ms=1)
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL5", server_body=server)
     result = lint_blade(root, _catalog("blade-l5", [("t_wrapped", "structured")]))
     verdict = result.tools["t_wrapped"]["audit_surface"]
@@ -228,7 +228,7 @@ async def t_wrapped() -> str:
 
 def test_l6_minimal_declared_but_emits(tmp_path: Path) -> None:
     """Catalog declares minimal but tool calls append_meta → under-declared."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -241,7 +241,7 @@ mcp = _M()
 @mcp.tool()
 async def t_undersold() -> str:
     return append_meta("b", meta_envelope(matched_total=0, returned=0, latency_ms=0))
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL6", server_body=server)
     result = lint_blade(root, _catalog("blade-l6", [("t_undersold", "minimal")]))
     verdict = result.tools["t_undersold"]["audit_surface"]
@@ -255,7 +255,7 @@ async def t_undersold() -> str:
 
 def test_l7_minimal_declared_no_emit(tmp_path: Path) -> None:
     """Catalog declares minimal; tool does not call append_meta → match."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -266,7 +266,7 @@ mcp = _M()
 @mcp.tool()
 async def t_honest_minimal() -> str:
     return "plain"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL7", server_body=server)
     result = lint_blade(root, _catalog("blade-l7", [("t_honest_minimal", "minimal")]))
     verdict = result.tools["t_honest_minimal"]["audit_surface"]
@@ -280,7 +280,7 @@ async def t_honest_minimal() -> str:
 
 def test_l8_none_always_match(tmp_path: Path) -> None:
     """audit_surface=none is byte-blob payload; emission status N/A → always match."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -291,7 +291,7 @@ mcp = _M()
 @mcp.tool()
 async def t_bytes() -> bytes:
     return b"\\x00\\x01"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL8", server_body=server)
     result = lint_blade(root, _catalog("blade-l8", [("t_bytes", "none")]))
     verdict = result.tools["t_bytes"]["audit_surface"]
@@ -305,7 +305,7 @@ async def t_bytes() -> bytes:
 
 def test_l9_tool_not_found(tmp_path: Path) -> None:
     """Catalog references a tool that has no matching @mcp.tool function."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -316,7 +316,7 @@ mcp = _M()
 @mcp.tool()
 async def real_tool() -> str:
     return ""
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL9", server_body=server)
     result = lint_blade(root, _catalog("blade-l9", [("phantom_tool", "structured")]))
     verdict = result.tools["phantom_tool"]["audit_surface"]
@@ -332,7 +332,7 @@ async def real_tool() -> str:
 
 def test_l10_summary_aggregation(tmp_path: Path) -> None:
     """5-tool mixed blade exercises every counter slot."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -357,7 +357,7 @@ async def t_under() -> str:
 @mcp.tool()
 async def t_match_min() -> str:
     return "plain"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL10", server_body=server)
     catalog = _catalog(
         "blade-l10",
@@ -385,7 +385,7 @@ async def t_match_min() -> str:
 
 def test_l11_json_shape(tmp_path: Path) -> None:
     """to_dict() round-trips through JSON and carries the documented schema."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -396,7 +396,7 @@ mcp = _M()
 @mcp.tool()
 async def t_only() -> str:
     return "plain"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeL11", server_body=server)
     result = lint_blade(root, _catalog("blade-l11", [("t_only", "minimal")]))
     payload = result.to_dict()
@@ -437,7 +437,7 @@ async def t_only() -> str:
 
 def test_bare_decorator_shape(tmp_path: Path) -> None:
     """``@mcp.tool`` (no parens) is the FastMCP shorthand — same registration shape."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -448,7 +448,7 @@ mcp = _M()
 @mcp.tool
 async def t_bare() -> str:
     return append_meta("b", meta_envelope(matched_total=0, returned=0, latency_ms=0))
-'''
+"""
     root = _write_blade(tmp_path, package="bladeBare", server_body=server)
     result = lint_blade(root, _catalog("blade-bare", [("t_bare", "structured")]))
     assert result.tools["t_bare"]["audit_surface"]["result"] == "match"
@@ -461,7 +461,7 @@ async def t_bare() -> str:
 
 def test_explicit_name_kwarg(tmp_path: Path) -> None:
     """``@mcp.tool(name="X")`` registers the function under the X tool name."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -474,7 +474,7 @@ mcp = _M()
 @mcp.tool(name="syncthing_thing")
 async def python_fn_name() -> str:
     return append_meta("b", meta_envelope(matched_total=0, returned=0, latency_ms=0))
-'''
+"""
     root = _write_blade(tmp_path, package="bladeName", server_body=server)
     result = lint_blade(
         root,
@@ -490,7 +490,7 @@ async def python_fn_name() -> str:
 
 def test_unknown_declared_value(tmp_path: Path) -> None:
     """Catalog with junk audit_surface value falls through to indeterminate."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -501,7 +501,7 @@ mcp = _M()
 @mcp.tool()
 async def t_junk() -> str:
     return ""
-'''
+"""
     root = _write_blade(tmp_path, package="bladeJunk", server_body=server)
     result = lint_blade(root, _catalog("blade-junk", [("t_junk", "totally-bogus")]))
     verdict = result.tools["t_junk"]["audit_surface"]
@@ -516,7 +516,7 @@ async def t_junk() -> str:
 
 def test_unparseable_source_skipped(tmp_path: Path) -> None:
     """A SyntaxError in one file should not crash the resolver."""
-    server = '''
+    server = """
 from stallari_mcp_helpers import append_meta, meta_envelope
 
 class _M:
@@ -529,7 +529,7 @@ mcp = _M()
 @mcp.tool()
 async def t_ok() -> str:
     return append_meta("b", meta_envelope(matched_total=0, returned=0, latency_ms=0))
-'''
+"""
     root = _write_blade(
         tmp_path,
         package="bladeBroken",
@@ -547,7 +547,7 @@ async def t_ok() -> str:
 
 def test_cli_writes_sidecar_and_exits_strict(tmp_path: Path) -> None:
     """End-to-end CLI test: build a blade, write a catalog, run --strict, check rc."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -558,7 +558,7 @@ mcp = _M()
 @mcp.tool()
 async def t_silent() -> str:
     return "no envelope"
-'''
+"""
     root = _write_blade(tmp_path, package="bladeCli", server_body=server)
     catalog_path = tmp_path / "catalog.json"
     catalog_path.write_text(
@@ -584,7 +584,7 @@ async def t_silent() -> str:
 
 def test_cli_no_strict_returns_zero(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
     """Without --strict, lint always returns 0 even with verdict failures."""
-    server = '''
+    server = """
 class _M:
     def tool(self, *a, **kw):
         def deco(fn): return fn
@@ -595,7 +595,7 @@ mcp = _M()
 @mcp.tool()
 async def t() -> str:
     return ""
-'''
+"""
     root = _write_blade(tmp_path, package="bladeCliOk", server_body=server)
     catalog_path = tmp_path / "catalog.json"
     catalog_path.write_text(

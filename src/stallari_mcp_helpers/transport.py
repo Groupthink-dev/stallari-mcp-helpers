@@ -155,9 +155,7 @@ def resolve_http_transport(
             f"{env_prefix}_MCP_ALLOW_NONLOOPBACK=true if that address is "
             "not loopback."
         )
-    if not _is_loopback(host) and not strict_env_bool(
-        e.get(f"{env_prefix}_MCP_ALLOW_NONLOOPBACK")
-    ):
+    if not _is_loopback(host) and not strict_env_bool(e.get(f"{env_prefix}_MCP_ALLOW_NONLOOPBACK")):
         raise TransportPolicyError(
             f"{env_prefix}_MCP_HOST={host!r} is not a loopback address. "
             f"Set {env_prefix}_MCP_ALLOW_NONLOOPBACK=true (exact string) "
@@ -176,9 +174,7 @@ def resolve_http_transport(
     else:
         port = default_port
     if not 1 <= port <= 65535:
-        raise TransportPolicyError(
-            f"{env_prefix}_MCP_PORT={port} is outside 1-65535."
-        )
+        raise TransportPolicyError(f"{env_prefix}_MCP_PORT={port} is outside 1-65535.")
 
     return HTTPTransportConfig(host=host, port=port, token=token)
 
@@ -203,9 +199,7 @@ class BearerAuthASGIMiddleware:
         if not token:
             # Constructing an auth gate with no token would silently
             # recreate AUD-04-08; fail loudly at wiring time instead.
-            raise TransportPolicyError(
-                "BearerAuthASGIMiddleware requires a non-empty token"
-            )
+            raise TransportPolicyError("BearerAuthASGIMiddleware requires a non-empty token")
         self.app = app
         self._token = token
 
@@ -227,9 +221,7 @@ class BearerAuthASGIMiddleware:
         presented = self._bearer_from_headers(scope)
         if presented is None:
             return False
-        return hmac.compare_digest(
-            presented.encode("utf-8"), self._token.encode("utf-8")
-        )
+        return hmac.compare_digest(presented.encode("utf-8"), self._token.encode("utf-8"))
 
     async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         scope_type = scope.get("type")

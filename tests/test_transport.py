@@ -47,15 +47,11 @@ def test_token_absent_refuses() -> None:
 def test_token_empty_or_whitespace_refuses() -> None:
     for tok in ("", "   "):
         with pytest.raises(TransportPolicyError):
-            resolve_http_transport(
-                env_prefix=PREFIX, default_port=9000, env=_env(TOKEN=tok)
-            )
+            resolve_http_transport(env_prefix=PREFIX, default_port=9000, env=_env(TOKEN=tok))
 
 
 def test_token_present_loopback_default_ok() -> None:
-    cfg = resolve_http_transport(
-        env_prefix=PREFIX, default_port=9000, env=_env(TOKEN="s3cret")
-    )
+    cfg = resolve_http_transport(env_prefix=PREFIX, default_port=9000, env=_env(TOKEN="s3cret"))
     assert cfg == HTTPTransportConfig(host="127.0.0.1", port=9000, token="s3cret")
 
 
@@ -214,9 +210,7 @@ def test_run_http_uses_fastmcp3_run_kwargs(monkeypatch: pytest.MonkeyPatch) -> N
 
         def __getattr__(self, name: str) -> Any:
             if name == "settings":
-                raise AssertionError(
-                    "run_http touched mcp.settings — dead on FastMCP 3.x"
-                )
+                raise AssertionError("run_http touched mcp.settings — dead on FastMCP 3.x")
             raise AttributeError(name)
 
     # Stub starlette if absent in the test env.

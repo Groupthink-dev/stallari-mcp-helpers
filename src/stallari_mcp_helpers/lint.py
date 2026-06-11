@@ -112,9 +112,7 @@ class _ModuleInfo:
     # Tool functions defined in this module, indexed by tool name (as
     # declared by the catalog — either ``name=`` kwarg on the decorator
     # or the bare function name).
-    tools: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = field(
-        default_factory=dict
-    )
+    tools: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = field(default_factory=dict)
     # Imports as ``{local_name: (origin_module, original_name)}``. ``origin_module``
     # is the fully qualified module path as written (we don't resolve relative
     # imports here — those are tracked separately by the relative-import map).
@@ -453,8 +451,7 @@ def _verdict_for_tool(
                 actual="structured",
                 result="match",
                 detail=(
-                    "tool body calls append_meta (directly or via a "
-                    "resolved wrapper / re-export)."
+                    "tool body calls append_meta (directly or via a resolved wrapper / re-export)."
                 ),
             )
         return _ToolVerdict(
@@ -628,10 +625,7 @@ def _cli(argv: list[str] | None = None) -> int:
         "--output",
         type=Path,
         default=None,
-        help=(
-            "Optional sidecar JSON path. Without --output the verdict is "
-            "printed to stdout."
-        ),
+        help=("Optional sidecar JSON path. Without --output the verdict is printed to stdout."),
     )
     parser.add_argument(
         "--strict",

@@ -483,13 +483,11 @@ def test_canonical_key_order_kitchen_sink() -> None:
     indices = [body.index(k) for k in expected_order]
     # Indices must be strictly increasing.
     assert indices == sorted(indices), (
-        "keys out of canonical order: "
-        f"{list(zip(expected_order, indices, strict=True))}"
+        f"keys out of canonical order: {list(zip(expected_order, indices, strict=True))}"
     )
     # Spot-check the literal prefix to nail the exact wire shape.
     expected_prefix = (
-        '{"matched_total":10,"returned":5,"filtered_by":["scope=work"],'
-        '"latency_ms":42,'
+        '{"matched_total":10,"returned":5,"filtered_by":["scope=work"],"latency_ms":42,'
     )
     assert body.startswith(expected_prefix)
 

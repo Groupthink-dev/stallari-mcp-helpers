@@ -53,13 +53,9 @@ def test_golden_full_envelope() -> None:
 
 
 def test_golden_write_minimal_envelope() -> None:
-    line = meta_envelope(
-        latency_ms=1, rows_affected=1, target_id="x", write_durability="edge"
-    )
+    line = meta_envelope(latency_ms=1, rows_affected=1, target_id="x", write_durability="edge")
     assert line == GOLDEN_WRITE_MINIMAL
 
 
 def test_append_meta_joiner() -> None:
-    assert append_meta("body", GOLDEN_WRITE_MINIMAL) == (
-        "body\n\n" + GOLDEN_WRITE_MINIMAL
-    )
+    assert append_meta("body", GOLDEN_WRITE_MINIMAL) == ("body\n\n" + GOLDEN_WRITE_MINIMAL)
