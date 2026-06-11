@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-12
+
+### Added — DD-386 helper-lib hardening (AUD-04-08/09/19/31 transport class)
+- New `stallari_mcp_helpers.transport` module — the canonical HTTP-transport policy gate, closing the fleet-wide token-absent-serves-unauthenticated class once at the shared-lib layer:
+  - `resolve_http_transport(env_prefix=, default_port=, env=, token_var=)` → `HTTPTransportConfig`. **Token-absent ⇒ refuse-to-serve** (raises `TransportPolicyError`; never warn-and-serve). Wildcard binds (`0.0.0.0` / `::` / empty) refused unconditionally. Specific non-loopback hosts require the exact-string `{PREFIX}_MCP_ALLOW_NONLOOPBACK=true` opt-in. Strict port parse. `token_var` override for blades with legacy token variable names (e.g. things3's `THINGS_MCP_API_TOKEN`).
+  - `BearerAuthASGIMiddleware` — pure-ASGI bearer gate enforcing **http AND websocket** scopes (AUD-04-31: websocket-exempting gates are a bypass), constant-time compare (`hmac.compare_digest`), 401 + `WWW-Authenticate: Bearer` / websocket close 4401, never logs or echoes the token, refuses construction with an empty token.
+  - `http_middleware(config)` / `run_http(mcp, config)` — the FastMCP **3.x-correct** serving glue: `mcp.run(transport="http", host=, port=, middleware=[Middleware(...)])`. The `mcp.settings.http_app_kwargs` idiom is dead on FastMCP 3.x (`AttributeError` at startup — AUD-04-09 in caldav/controld/aussiebb/google-home) and must not be used. `starlette` is imported lazily; the package keeps zero hard runtime deps beyond pyyaml.
+  - `strict_env_bool(value)` — only the exact string `"true"` is True (the truthy-string-parse defect class).
+- Cross-language golden parity fixture `tests/test_parity_golden.py` — collation-hostile byte-locked envelope asserted identically in the TS + Swift sibling repos.
+
+### Changed — `_meta` parity lock (AUD-04-12)
+- `domain_hints` keys are now emitted **sorted by Unicode code point** (previously caller insertion order), matching the `filtered_by` collation, so the rendered envelope is byte-deterministic.
+- Collation formally locked as **raw Unicode code-point order, no normalisation** (Python `sorted()` semantics). The TS sibling (v0.4.0) adopts an explicit code-point comparator (JS default `.sort()` is UTF-16 code-unit order — wrong on astral-plane input); the Swift sibling (v0.4.0) compares `unicodeScalars` (Swift's default `String <` is Unicode-canonical — also divergent).
+
+### Corrected
+- The v0.3.0 note claiming the 12-key order (incl. `domain_hints`) was "locked across languages (TS + Swift sibling helpers v0.3.0)" was **inaccurate** — both siblings were 11-key (no `domain_hints`) until their v0.4.0 releases, and the three default sort collations disagreed (AUD-04-12). Parity genuinely holds from the v0.4.0 trio onward, enforced by the shared golden fixture.
+
 ## [0.3.0] - 2026-05-24
 
 ### Added — DD-338 Phase D.1 MetaEnvelope additive extension for write-tier fields

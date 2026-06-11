@@ -206,6 +206,36 @@ def load_patterns_from_yaml(yaml_str: str) -> list[Pattern]:
     """Parse a `patterns:` YAML block. Malformed/empty returns []."""
 ```
 
+### `transport` (v0.4.0 — DD-386)
+
+The canonical HTTP-transport policy gate. HTTP mode without a bearer token
+**refuses to serve** (never warns-and-serves unauthenticated); wildcard binds
+are refused unconditionally; non-loopback binds require the exact-string
+`{PREFIX}_MCP_ALLOW_NONLOOPBACK=true` opt-in. Use `run_http` for the
+FastMCP 3.x-correct serving path — never `mcp.settings.http_app_kwargs`
+(dead on FastMCP 3.x; `AttributeError` at startup).
+
+```python
+from stallari_mcp_helpers.transport import (
+    TransportPolicyError, resolve_http_transport, run_http,
+)
+
+if transport == "http":
+    try:
+        cfg = resolve_http_transport(env_prefix="MYBLADE", default_port=8771)
+    except TransportPolicyError as e:
+        print(f"refusing to serve HTTP: {e}", file=sys.stderr)
+        raise SystemExit(2)
+    run_http(mcp, cfg)   # bearer enforced on http AND websocket scopes
+else:
+    mcp.run()  # stdio — the harness-launch posture (DD-242)
+```
+
+Also exported: `BearerAuthASGIMiddleware` (pure-ASGI, constant-time compare),
+`http_middleware(cfg)` (the `middleware=[...]` list for `mcp.http_app()`
+paths), and `strict_env_bool` (only the exact string `"true"` is True).
+
+
 ## Versioning
 
 SemVer. `0.x.y` series while the public API stabilises; `1.0.0` once consumers have shipped against `0.x` for >30 days with no API churn.

@@ -12,4 +12,4 @@ from __future__ import annotations
 def test_package_imports() -> None:
     import stallari_mcp_helpers
 
-    assert stallari_mcp_helpers.__version__ == "0.3.0"
+    assert stallari_mcp_helpers.__version__ == "0.4.0"

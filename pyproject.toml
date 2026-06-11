@@ -1,6 +1,6 @@
 [project]
 name = "stallari-mcp-helpers"
-version = "0.3.0"
+version = "0.4.0"
 description = "Canonical helpers for Stallari-conformant MCP servers — `_meta` audit envelope builder and per-record domain-hint pattern engine. Drop-in primitives for Python MCP authors targeting Stallari's contract surface (DD-333/DD-338)."
 readme = "README.md"
 license = "MIT"

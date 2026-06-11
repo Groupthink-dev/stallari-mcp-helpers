@@ -8,7 +8,14 @@ Single line appended after ``\\n\\n``; assembler regex on the consuming side::
 Locked encoding:
 
     1. **JSON separator** ``(",", ":")`` — tight, byte-minimal.
-    2. **filtered_by** sorted alphabetically for hash reproducibility.
+    2. **filtered_by** sorted for hash reproducibility. Collation is raw
+       Unicode **code-point** order (Python ``sorted()`` on ``str``) with no
+       normalisation — the locked cross-language collation. The TS sibling
+       uses an explicit code-point comparator (JS default ``.sort()`` is
+       UTF-16 code-unit order, which disagrees on astral-plane input); the
+       Swift sibling compares ``unicodeScalars`` (Swift's default ``String
+       <`` applies Unicode-canonical ordering, which also disagrees).
+       ``domain_hints`` keys use the same collation (v0.4.0).
     3. **ensure_ascii=False** — preserve Unicode.
     4. **Field-presence rules:**
        - ``latency_ms`` — always present.
@@ -114,7 +121,10 @@ def meta_envelope(
     if error_notes:
         present["error_notes"] = list(error_notes)
     if domain_hints:
-        present["domain_hints"] = domain_hints
+        # Keys sorted by Unicode code point (same collation as
+        # ``filtered_by``) so the rendered envelope is byte-deterministic
+        # regardless of caller insertion order — AUD-04-12 parity lock.
+        present["domain_hints"] = dict(sorted(domain_hints.items()))
 
     # Hand-assemble in canonical order — see module-level note on why we do
     # not trust ``json.dumps(dict)`` for cross-language byte-parity.
