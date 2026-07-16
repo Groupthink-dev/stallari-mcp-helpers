@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-07-09
+
+### Corrected
+- README/PyPI long-description `_meta` examples now match the shipped canonical key order; no encoder or wire-contract change.
+
 ## [0.4.0] - 2026-06-12
 
 ### Added — DD-386 helper-lib hardening (AUD-04-08/09/19/31 transport class)

@@ -76,8 +76,10 @@ Output (assembler-side regex contract: `\n\n_meta: (\{.*\})$`):
 ```
 <your body>
 
-_meta: {"matched_total":42,"returned":10,"latency_ms":234,"filtered_by":["query=foo","scope=personal"],"redactions":[],"next_cursor":null}
+_meta: {"matched_total":42,"returned":10,"filtered_by":["query=foo","scope=personal"],"latency_ms":234,"redactions":[],"next_cursor":null}
 ```
+
+The locked key order begins `matched_total`, `returned`, `filtered_by`, `latency_ms`, `redactions`, `next_cursor`, followed by any present optional fields.
 
 ## Quick start — per-record domain attribution
 
@@ -171,12 +173,16 @@ All of that lives here. You write your tool, declare your contract honestly, and
 ```python
 def meta_envelope(
     *,
-    matched_total: int,
-    returned: int,
     latency_ms: int,
+    matched_total: int | None = None,
+    returned: int | None = None,
     filtered_by: list[str] | None = None,
     redactions: list[str] | None = None,
     next_cursor: str | None = None,
+    rows_affected: int | None = None,
+    target_id: str | None = None,
+    write_durability: str | None = None,
+    response_timestamp: str | None = None,
     error_notes: list[str] | None = None,
     domain_hints: dict[str, str] | None = None,
 ) -> str:
